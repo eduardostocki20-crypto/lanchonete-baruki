@@ -1,0 +1,36 @@
+/* Custom Animations and Styles */
+@keyframes subtle-zoom {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+}
+
+.animate-subtle-zoom {
+    animation: subtle-zoom 25s infinite alternate ease-in-out;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0A0A0A;
+}
+::-webkit-scrollbar-thumb {
+    background: #262626;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #E53935;
+}
+
+/* Card hover animation */
+.pizza-card-hover {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pizza-card-hover:hover {
+    transform: translateY(-4px);
+    border-color: rgba(245, 158, 11, 0.35);
+    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.8);
+}

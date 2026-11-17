@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}{{ settings.pizzeria_name }} | {{ settings.pizzeria_tagline }}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden py-16">
+    <div class="absolute inset-0 z-0">
+        <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=2000&q=80" 
+             alt="Pizza Artesanal" 
+             class="w-full h-full object-cover brightness-[0.25] scale-105 motion-safe:animate-subtle-zoom">
+        <div class="absolute inset-0 bg-gradient-to-t from-brand-darker via-brand-darker/60 to-transparent"></div>
+    </div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-surface/80 backdrop-blur-md border border-white/10 text-brand-gold text-xs sm:text-sm font-medium">
+            <i data-lucide="award" class="w-4 h-4"></i>
+            <span>{{ settings.pizzeria_tagline }}</span>
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-6xl md:text-7xl font-black text-white leading-tight tracking-tight">
+            A autêntica pizza no <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold via-brand-red to-brand-gold">forno a lenha napolitano</span>
+        </h1>
+
+        <p class="max-w-2xl mx-auto text-gray-300 text-base sm:text-lg leading-relaxed font-light">
+            {{ settings.about_text }}
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <a href="{{ url_for('menu') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-brand-red hover:bg-brand-darkRed text-white px-8 py-4 rounded-full font-semibold text-base transition-all shadow-xl shadow-brand-red/30 hover:scale-105">
+                <i data-lucide="utensils" class="w-5 h-5"></i>
+                <span>Ver Cardápio & Fazer Pedido</span>
+            </a>
+            <a href="https://wa.me/{{ settings.whatsapp_number }}?text=Ol%C3%A1!%20Gostaria%20de%20fazer%20uma%20pergunta%20sobre%20a%20pizzaria." target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-brand-surface/80 hover:bg-brand-surface border border-white/15 text-white px-8 py-4 rounded-full font-medium text-base transition-all hover:border-brand-gold/50">
+                <i data-lucide="message-circle" class="w-5 h-5 text-green-400"></i>
+                <span>Falar no WhatsApp</span>
+            </a>
+        </div>
+
+        <!-- Badges Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-10 border-t border-white/10 max-w-4xl mx-auto">
+            <div class="flex flex-col items-center p-3 rounded-xl bg-white/[0.02]">
+                <span class="text-brand-gold font-bold text-xl sm:text-2xl font-serif">48h</span>
+                <span class="text-xs text-gray-400 mt-1">Fermentação Natural</span>
+            </div>
+            <div class="flex flex-col items-center p-3 rounded-xl bg-white/[0.02]">
+                <span class="text-brand-gold font-bold text-xl sm:text-2xl font-serif">450°C</span>
+                <span class="text-xs text-gray-400 mt-1">Forno a Lenha</span>
+            </div>
+            <div class="flex flex-col items-center p-3 rounded-xl bg-white/[0.02]">
+                <span class="text-brand-gold font-bold text-xl sm:text-2xl font-serif">{{ settings.delivery_time }}</span>
+                <span class="text-xs text-gray-400 mt-1">Tempo Médio Entrega</span>
+            </div>
+            <div class="flex flex-col items-center p-3 rounded-xl bg-white/[0.02]">
+                <span class="text-brand-gold font-bold text-xl sm:text-2xl font-serif">100%</span>
+                <span class="text-xs text-gray-400 mt-1">Ingredientes Frescos</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Differentials Section -->
+<section id="diferenciais" class="py-20 bg-brand-dark border-y border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-brand-gold uppercase tracking-wider text-xs font-bold">Nossa Tradição</span>
+            <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white mt-2">Segredos da receita artesanal</h2>
+            <div class="w-16 h-1 bg-brand-red mx-auto mt-4 rounded-full"></div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-brand-surface p-8 rounded-2xl border border-white/5 hover:border-brand-gold/30 transition-all hover:-translate-y-1">
+                <div class="w-14 h-14 rounded-xl bg-brand-red/10 border border-brand-red/30 flex items-center justify-center text-brand-red mb-6">
+                    <i data-lucide="wheat" class="w-7 h-7"></i>
+                </div>
+                <h3 class="font-serif text-xl font-bold text-white mb-3">Massa Levain & Farinha Tipo 00</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Nossa massa descansa por 48 horas em temperatura controlada, gerando alvéolos perfeitos, digestão super leve e crocância incomparável.
+                </p>
+            </div>
+
+            <div class="bg-brand-surface p-8 rounded-2xl border border-white/5 hover:border-brand-gold/30 transition-all hover:-translate-y-1">
+                <div class="w-14 h-14 rounded-xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center text-brand-gold mb-6">
+                    <i data-lucide="shield-check" class="w-7 h-7"></i>
+                </div>
+                <h3 class="font-serif text-xl font-bold text-white mb-3">Ingredientes Selecionados</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Tomates especiais San Marzano, queijos artesanais de produtores locais e manjericão fresco colhido para a sua mesa.
+                </p>
+            </div>
+
+            <div class="bg-brand-surface p-8 rounded-2xl border border-white/5 hover:border-brand-gold/30 transition-all hover:-translate-y-1">
+                <div class="w-14 h-14 rounded-xl bg-brand-red/10 border border-brand-red/30 flex items-center justify-center text-brand-red mb-6">
+                    <i data-lucide="zap" class="w-7 h-7"></i>
+                </div>
+                <h3 class="font-serif text-xl font-bold text-white mb-3">Pedido Rápido & WhatsApp</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Faça seu pedido diretamente pelo site, acompanhe o status em tempo real e receba quentinho na sua porta.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Pizzas Section -->
+<section class="py-20 bg-brand-darker">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+            <div>
+                <span class="text-brand-gold uppercase tracking-wider text-xs font-bold">Destaques da Casa</span>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white mt-2">As Pizzas Favoritas dos Clientes</h2>
+            </div>
+            <a href="{{ url_for('menu') }}" class="inline-flex items-center gap-2 text-brand-gold hover:text-white font-medium text-sm mt-4 md:mt-0 transition-colors">
+                <span>Ver cardápio completo</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for pizza in featured_pizzas %}
+                <div class="bg-brand-surface rounded-2xl border border-white/10 overflow-hidden flex flex-col justify-between group hover:border-brand-gold/30 transition-all">
+                    <div>
+                        <div class="relative h-48 overflow-hidden">
+                            <img src="{{ pizza['image_url'] }}" alt="{{ pizza['name'] }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-brand-surface via-transparent to-transparent"></div>
+                            {% if pizza['badge'] %}
+                                <span class="absolute top-3 left-3 bg-brand-red text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow">
+                                    {{ pizza['badge'] }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-serif text-lg font-bold text-white group-hover:text-brand-gold transition-colors">{{ pizza['name'] }}</h3>
+                            <p class="text-gray-400 text-xs mt-2 leading-relaxed line-clamp-2">{{ pizza['description'] }}</p>
+                        </div>
+                    </div>
+
+                    <div class="p-5 pt-0 border-t border-white/5 flex items-center justify-between mt-4">
+                        <div>
+                            <span class="text-[10px] uppercase text-gray-500 block font-semibold">Tamanho Grande (8 fatias)</span>
+                            <span class="text-brand-gold font-serif font-bold text-lg">{{ pizza['price_grande'] | currency }}</span>
+                        </div>
+                        <a href="{{ url_for('menu') }}#item-{{ pizza['id'] }}" class="bg-brand-surfaceLight hover:bg-brand-red text-white px-3 py-2 rounded-xl border border-white/10 transition-all text-xs font-semibold hover:border-transparent flex items-center gap-1.5">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            <span>Pedir</span>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Location & Opening Hours -->
+<section id="contato" class="py-20 bg-brand-dark border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <span class="text-brand-gold uppercase tracking-wider text-xs font-bold">Onde Estamos</span>
+                <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white">Venha nos visitar ou peça online</h2>
+                <p class="text-gray-400 text-sm sm:text-base leading-relaxed">
+                    Salão climatizado com luz acolhedora e visão direta do nosso forno artesanal.
+                </p>
+
+                <div class="space-y-4 pt-2">
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 rounded-lg bg-brand-surface text-brand-red border border-white/10">
+                            <i data-lucide="map-pin" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Endereço</h4>
+                            <p class="text-gray-400 text-sm">{{ settings.address }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 rounded-lg bg-brand-surface text-brand-gold border border-white/10">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Horário de Funcionamento</h4>
+                            <p class="text-gray-400 text-sm">{{ settings.opening_hours }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 rounded-lg bg-brand-surface text-green-500 border border-white/10">
+                            <i data-lucide="phone-call" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Atendimento & WhatsApp</h4>
+                            <p class="text-gray-400 text-sm">{{ settings.phone_contact }} / {{ settings.whatsapp_number }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Ambiente -->
+            <div class="bg-brand-surface rounded-3xl border border-white/10 p-6 shadow-2xl">
+                <div class="aspect-video w-full rounded-2xl overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80" alt="Ambiente" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span class="bg-brand-darker/90 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10 text-white text-sm font-semibold flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-brand-gold"></i>
+                            Ambiente Aconchegante & Forno a Lenha
+                        </span>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between text-xs text-gray-400">
+                    <span>Estacionamento no local</span>
+                    <a href="{{ settings.google_maps_url }}" target="_blank" class="text-brand-gold hover:underline font-semibold flex items-center gap-1">
+                        <span>Ver no Google Maps</span>
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

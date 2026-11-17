@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}Painel do Dono da Pizzaria | {{ settings.pizzeria_name }}{% endblock %}
+
+{% block content %}
+<div class="py-10 bg-brand-darker">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+            <div>
+                <span class="text-xs uppercase font-bold text-brand-gold tracking-wider">Área Administrativa do Comércio</span>
+                <h1 class="font-serif text-3xl font-bold text-white mt-1">Painel de Gestão • {{ settings.pizzeria_name }}</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('index') }}" target="_blank" class="bg-brand-surface hover:bg-brand-surfaceLight border border-white/10 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+                    <i data-lucide="globe" class="w-4 h-4 text-brand-gold"></i>
+                    <span>Ver Site ao Vivo</span>
+                </a>
+                <button onclick="window.location.reload()" class="bg-brand-surface hover:bg-brand-surfaceLight border border-white/10 text-white p-2.5 rounded-xl text-xs transition-colors" title="Atualizar">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex items-center gap-2 sm:gap-4 border-b border-white/10 pb-4 overflow-x-auto">
+            <a href="{{ url_for('admin_dashboard', tab='pedidos') }}" 
+               class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap {% if active_tab == 'pedidos' %}bg-brand-red text-white shadow-lg shadow-brand-red/30{% else %}bg-brand-surface text-gray-400 hover:text-white border border-white/5{% endif %}">
+                <i data-lucide="receipt" class="w-4 h-4"></i>
+                <span>Fila de Pedidos & Cozinha ({{ pending_count }})</span>
+            </a>
+
+            <a href="{{ url_for('admin_dashboard', tab='config') }}" 
+               class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap {% if active_tab == 'config' %}bg-brand-gold text-brand-dark shadow-lg shadow-brand-gold/30 font-extrabold{% else %}bg-brand-surface text-brand-gold hover:text-white border border-brand-gold/30{% endif %}">
+                <i data-lucide="sliders" class="w-4 h-4"></i>
+                <span>⚙️ Dados do Comércio (Nome, WhatsApp, Endereço)</span>
+            </a>
+
+            <a href="{{ url_for('admin_dashboard', tab='produtos') }}" 
+               class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap {% if active_tab == 'produtos' %}bg-brand-red text-white shadow-lg shadow-brand-red/30{% else %}bg-brand-surface text-gray-400 hover:text-white border border-white/5{% endif %}">
+                <i data-lucide="pizza" class="w-4 h-4"></i>
+                <span>Cardápio & Preços</span>
+            </a>
+        </div>
+
+        <!-- ==================== TAB 1: PEDIDOS ==================== -->
+        {% if active_tab == 'pedidos' %}
+            <!-- Metrics Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="bg-brand-surface p-6 rounded-2xl border border-white/10 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-gray-400 block font-semibold uppercase">Faturamento Total</span>
+                        <span class="font-serif text-2xl font-bold text-white mt-1 block">{{ total_sales | currency }}</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="bg-brand-surface p-6 rounded-2xl border border-white/10 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-gray-400 block font-semibold uppercase">Pedidos em Aberto</span>
+                        <span class="font-serif text-2xl font-bold text-brand-gold mt-1 block">{{ pending_count }}</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-brand-gold">
+                        <i data-lucide="clock" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="bg-brand-surface p-6 rounded-2xl border border-white/10 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-gray-400 block font-semibold uppercase">Total de Pedidos</span>
+                        <span class="font-serif text-2xl font-bold text-white mt-1 block">{{ total_orders }}</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                        <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Table with PIN code -->
+            <div class="bg-brand-surface rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+                <div class="p-6 border-b border-white/10 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="list-ordered" class="w-5 h-5 text-brand-gold"></i>
+                        <h2 class="font-serif text-xl font-bold text-white">Fila de Pedidos & Rastreamento</h2>
+                    </div>
+                    <span class="text-xs text-brand-gold font-semibold">🔒 Validação por PIN de Entrega (Estilo iFood)</span>
+                </div>
+
+                {% if orders|length == 0 %}
+                    <div class="p-12 text-center text-gray-400">
+                        <i data-lucide="inbox" class="w-10 h-10 mx-auto text-gray-600 mb-2"></i>
+                        <p class="text-sm">Nenhum pedido registrado ainda.</p>
+                    </div>
+                {% else %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead>
+                                <tr class="border-b border-white/10 bg-brand-dark/50 text-gray-400 uppercase font-semibold text-[11px]">
+                                    <th class="p-4">#ID</th>
+                                    <th class="p-4">Cliente / Contato</th>
+                                    <th class="p-4">PIN de Entrega</th>
+                                    <th class="p-4">Tipo & Endereço</th>
+                                    <th class="p-4">Valor Total</th>
+                                    <th class="p-4">Pagamento</th>
+                                    <th class="p-4">Etapa do Rastreamento</th>
+                                    <th class="p-4">Ação Rápida Cozinha</th>
+                                    <th class="p-4 text-right">Comanda</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                {% for order in orders %}
+                                    <tr class="hover:bg-white/[0.02] transition-colors">
+                                        <td class="p-4 font-bold text-white">#{{ order['id'] }}</td>
+                                        <td class="p-4">
+                                            <div class="font-bold text-white">{{ order['customer_name'] }}</div>
+                                            <div class="text-xs text-gray-400">{{ order['customer_phone'] }}</div>
+                                        </td>
+                                        
+                                        <!-- iFood Delivery Code PIN -->
+                                        <td class="p-4">
+                                            <span class="font-mono font-black text-brand-gold bg-brand-dark px-2.5 py-1.5 rounded-xl border border-brand-gold/40 text-xs tracking-wider inline-flex items-center gap-1 shadow-sm">
+                                                <i data-lucide="key" class="w-3.5 h-3.5 text-brand-gold"></i>
+                                                <span>{{ order['delivery_code'] or '1234' }}</span>
+                                            </span>
+                                        </td>
+
+                                        <td class="p-4">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {% if order['delivery_type'] == 'delivery' %}bg-purple-900/40 text-purple-300 border border-purple-500/30{% else %}bg-blue-900/40 text-blue-300 border border-blue-500/30{% endif %}">
+                                                {{ 'Entrega' if order['delivery_type'] == 'delivery' else 'Balcão' }}
+                                            </span>
+                                            {% if order['delivery_type'] == 'delivery' %}
+                                                <div class="text-xs text-gray-400 max-w-xs truncate mt-0.5" title="{{ order['address'] }}">{{ order['address'] }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="p-4 font-serif font-bold text-brand-gold">{{ order['total'] | currency }}</td>
+                                        <td class="p-4 text-xs text-gray-300">{{ order['payment_method'] }}</td>
+                                        
+                                        <!-- Status Selector -->
+                                        <td class="p-4">
+                                            <form action="{{ url_for('admin_update_order_status', order_id=order['id']) }}" method="POST" class="inline-flex">
+                                                <select name="status" onchange="this.form.submit()" class="bg-brand-surfaceLight border border-white/15 rounded-lg px-2.5 py-1 text-xs text-white font-medium focus:outline-none focus:border-brand-gold">
+                                                    <option value="Pedido Feito" {% if order['status'] == 'Pedido Feito' %}selected{% endif %}>🟡 1. Pedido Feito</option>
+                                                    <option value="Pedido em Preparo" {% if order['status'] == 'Pedido em Preparo' %}selected{% endif %}>🔥 2. Pedido em Preparo</option>
+                                                    <option value="Pedido Coletado" {% if order['status'] == 'Pedido Coletado' %}selected{% endif %}>🛵 3. Pedido Coletado</option>
+                                                    <option value="Pedido Entregue" {% if order['status'] == 'Pedido Entregue' %}selected{% endif %}>🟢 4. Pedido Entregue</option>
+                                                    <option value="Cancelado" {% if order['status'] == 'Cancelado' %}selected{% endif %}>🔴 Cancelado</option>
+                                                </select>
+                                            </form>
+                                        </td>
+
+                                        <!-- Quick 1-Click Action Button -->
+                                        <td class="p-4">
+                                            {% if order['status'] == 'Pedido Feito' %}
+                                                <form action="{{ url_for('admin_update_order_status', order_id=order['id']) }}" method="POST">
+                                                    <input type="hidden" name="status" value="Pedido em Preparo">
+                                                    <button type="submit" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+                                                        <i data-lucide="flame" class="w-3.5 h-3.5"></i>
+                                                        <span>Iniciar Preparo</span>
+                                                    </button>
+                                                </form>
+                                            {% elif order['status'] == 'Pedido em Preparo' %}
+                                                <form action="{{ url_for('admin_update_order_status', order_id=order['id']) }}" method="POST">
+                                                    <input type="hidden" name="status" value="Pedido Coletado">
+                                                    <button type="submit" class="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+                                                        <i data-lucide="bike" class="w-3.5 h-3.5"></i>
+                                                        <span>Marcar Coletado</span>
+                                                    </button>
+                                                </form>
+                                            {% elif order['status'] == 'Pedido Coletado' %}
+                                                <form action="{{ url_for('admin_update_order_status', order_id=order['id']) }}" method="POST">
+                                                    <input type="hidden" name="status" value="Pedido Entregue">
+                                                    <button type="submit" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+                                                        <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+                                                        <span>Validar PIN & Entregar</span>
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <span class="text-[11px] text-gray-500">Concluído</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="p-4 text-right">
+                                            <a href="{{ url_for('track_order', order_id=order['id']) }}" target="_blank" class="text-brand-gold hover:underline font-semibold text-xs inline-flex items-center gap-1">
+                                                <span>Ver Comanda</span>
+                                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- ==================== TAB 2: CONFIGURAÇÕES DA LOJA (WHITE-LABEL) ==================== -->
+        {% if active_tab == 'config' %}
+            <div class="bg-brand-surface rounded-2xl border border-white/10 p-6 sm:p-8 space-y-6 shadow-xl">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-6 h-6 text-brand-gold"></i>
+                        <h2 class="font-serif text-2xl font-bold text-white">Configurações & Dados do Seu Comércio</h2>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">
+                        Preencha as informações do seu comércio. Todas as alterações são aplicadas instantaneamente em todas as páginas do site!
+                    </p>
+                </div>
+
+                <form action="{{ url_for('admin_save_settings') }}" method="POST" class="space-y-6">
+                    
+                    <!-- Section: Identidade da Marca -->
+                    <div class="space-y-4 border-t border-white/10 pt-4">
+                        <h3 class="font-bold text-sm text-brand-gold uppercase tracking-wider">1. Identidade & Nome</h3>
+                        <div class="grid sm:grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Nome da Pizzaria / Lanchonete *</label>
+                                <input type="text" name="pizzeria_name" required value="{{ settings.pizzeria_name }}" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white font-medium focus:outline-none focus:border-brand-gold">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Slogan / Subtítulo</label>
+                                <input type="text" name="pizzeria_tagline" value="{{ settings.pizzeria_tagline }}" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-brand-gold">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-300 font-semibold mb-1 text-xs">Banner Promocional do Topo (Aviso vermelho)</label>
+                            <input type="text" name="promo_banner" value="{{ settings.promo_banner }}" placeholder="Ex: Terça a Quinta: Na compra de 1 Grande, ganhe 1 refrigerante lata!" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-300 font-semibold mb-1 text-xs">Sobre Nós / Descrição do Estabelecimento</label>
+                            <textarea name="about_text" rows="2" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-gold">{{ settings.about_text }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section: Contato & WhatsApp -->
+                    <div class="space-y-4 border-t border-white/10 pt-4">
+                        <h3 class="font-bold text-sm text-brand-gold uppercase tracking-wider">2. Contatos & WhatsApp de Recebimento de Pedidos</h3>
+                        <div class="grid sm:grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">WhatsApp para Receber os Pedidos * (com DDI e DDD)</label>
+                                <input type="text" name="whatsapp_number" required value="{{ settings.whatsapp_number }}" placeholder="Ex: 5511999999999" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white font-medium focus:outline-none focus:border-brand-gold">
+                                <span class="text-[11px] text-gray-500 mt-1 block">Atenção: Use 55 + DDD + número (sem traços ou espaços).</span>
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Telefone Fixo / Atendimento</label>
+                                <input type="text" name="phone_contact" value="{{ settings.phone_contact }}" placeholder="(11) 3333-3333" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-brand-gold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Endereço & Horários -->
+                    <div class="space-y-4 border-t border-white/10 pt-4">
+                        <h3 class="font-bold text-sm text-brand-gold uppercase tracking-wider">3. Localização & Horários de Atendimento</h3>
+                        <div class="grid sm:grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Endereço Completo</label>
+                                <input type="text" name="address" value="{{ settings.address }}" placeholder="Rua ..., Nº ..., Bairro, Cidade - UF" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-brand-gold">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Horário de Funcionamento</label>
+                                <input type="text" name="opening_hours" value="{{ settings.opening_hours }}" placeholder="Terça a Domingo das 18h às 23h30" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-brand-gold">
+                            </div>
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Link do Google Maps</label>
+                                <input type="url" name="google_maps_url" value="{{ settings.google_maps_url }}" placeholder="https://maps.google.com/..." class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-brand-gold">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Instagram (@ ou URL completa)</label>
+                                <input type="text" name="instagram_url" value="{{ settings.instagram_url }}" placeholder="https://instagram.com/suapizzaria" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-brand-gold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Delivery & Pagamento -->
+                    <div class="space-y-4 border-t border-white/10 pt-4">
+                        <h3 class="font-bold text-sm text-brand-gold uppercase tracking-wider">4. Configuração de Entrega & Pagamento</h3>
+                        <div class="grid sm:grid-cols-3 gap-4 text-xs">
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Taxa de Entrega Padrão (R$) *</label>
+                                <input type="number" step="0.5" name="delivery_fee" required value="{{ settings.delivery_fee }}" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white font-bold text-sm focus:outline-none focus:border-brand-gold">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Tempo Médio de Entrega</label>
+                                <input type="text" name="delivery_time" value="{{ settings.delivery_time }}" placeholder="30-45 min" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-brand-gold">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 font-semibold mb-1">Chave PIX da Loja</label>
+                                <input type="text" name="pix_key" value="{{ settings.pix_key }}" placeholder="CNPJ, Celular ou E-mail" class="w-full bg-brand-surfaceLight border border-white/15 rounded-xl px-3.5 py-2.5 text-white font-medium focus:outline-none focus:border-brand-gold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-6 border-t border-white/10 flex justify-end">
+                        <button type="submit" class="bg-gradient-to-r from-brand-red to-brand-darkRed hover:brightness-110 text-white font-bold py-3.5 px-8 rounded-xl text-sm flex items-center gap-2 shadow-xl shadow-brand-red/30 transition-all hover:scale-[1.02]">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span>Salvar Informações da Minha Loja</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+
+        <!-- ==================== TAB 3: PRODUTOS & CARDÁPIO ==================== -->
+        {% if active_tab == 'produtos' %}
+            <div class="bg-brand-surface rounded-2xl border border-white/10 p-6 space-y-6 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="pizza" class="w-6 h-6 text-brand-gold"></i>
+                            <h2 class="font-serif text-2xl font-bold text-white">Gerenciamento do Cardápio</h2>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Cadastre novos sabores, altere preços ou pause itens que acabaram no estoque.</p>
+                    </div>
+                    <button onclick="document.getElementById('modal-new-product').classList.remove('hidden')" 
+                            class="bg-brand-red hover:bg-brand-darkRed text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-brand-red/30">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>+ Adicionar Nova Pizza/Item</span>
+                    </button>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for prod in products %}
+                        <div class="bg-brand-surfaceLight p-4 rounded-xl border border-white/5 flex flex-col justify-between space-y-3">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <img src="{{ prod['image_url'] }}" alt="" class="w-14 h-14 rounded-lg object-cover">
+                                    <div class="truncate">
+                                        <h4 class="font-bold text-white text-sm truncate">{{ prod['name'] }}</h4>
+                                        <span class="text-[10px] text-brand-gold font-semibold uppercase">{{ prod['category_slug'] }}</span>
+                                        {% if prod['badge'] %}
+                                            <span class="block text-[10px] text-gray-400">Selo: {{ prod['badge'] }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-2 line-clamp-2">{{ prod['description'] }}</p>
+                            </div>
+
+                            <div class="space-y-2 pt-2 border-t border-white/10">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-gray-400">Preço Grande:</span>
+                                    <span class="font-bold text-white font-serif">{{ prod['price_grande'] | currency }}</span>
+                                </div>
+
+                                <div class="flex items-center justify-between gap-2 pt-1">
+                                    <form action="{{ url_for('admin_toggle_product', product_id=prod['id']) }}" method="POST">
+                                        <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {% if prod['active'] %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30{% else %}bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30{% endif %}">
+                                            {{ '✅ Ativo no Site' if prod['active'] else '⏸️ Pausado' }}
+                                        </button>
+                                    </form>
+
+                                    <form action="{{ url_for('admin_delete_product', product_id=prod['id']) }}" method="POST" onsubmit="return confirm('Deseja realmente excluir este produto?')">
+                                        <button type="submit" class="p-1.5 text-gray-500 hover:text-red-400 rounded-lg hover:bg-white/5" title="Excluir">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- Modal: Adicionar Novo Produto -->
+<div id="modal-new-product" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-brand-surface max-w-md w-full rounded-2xl border border-white/10 p-6 shadow-2xl relative space-y-4">
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+            <h3 class="font-serif font-bold text-lg text-white">Cadastrar Novo Item</h3>
+            <button onclick="document.getElementById('modal-new-product').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form action="{{ url_for('admin_add_product') }}" method="POST" class="space-y-3 text-xs">
+            <div>
+                <label class="block text-gray-300 font-semibold mb-1">Nome do Item / Pizza *</label>
+                <input type="text" name="name" required placeholder="Ex: Pizza Pepperoni Suprema" class="w-full bg-brand-surfaceLight border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-brand-gold">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-1">Categoria *</label>
+                    <select name="category_slug" class="w-full bg-brand-surfaceLight border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-brand-gold">
+                        <option value="tradicionais">Tradicionais</option>
+                        <option value="especiais">Especiais</option>
+                        <option value="doces">Doces</option>
+                        <option value="bebidas">Bebidas</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-1">Selo / Badge</label>
+                    <input type="text" name="badge" placeholder="Ex: Novidade" class="w-full bg-brand-surfaceLight border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-brand-gold">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-gray-300 font-semibold mb-1">Descrição dos Ingredientes</label>
+                <textarea name="description" rows="2" placeholder="Ingredientes e detalhes..." class="w-full bg-brand-surfaceLight border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-brand-gold"></textarea>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-1">Preço Média (R$)</label>
+                    <input type="number" step="0.5" name="price_media" placeholder="50.00" class="w-full bg-brand-surfaceLight border border-white/10 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:border-brand-gold">
+                </div>
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-1">Preço Grande (R$)</label>
+                    <input type="number" step="0.5" name="price_grande" placeholder="65.00" class="w-full bg-brand-surfaceLight border border-white/10 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:border-brand-gold">
+                </div>
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-1">Preço Família (R$)</label>
+                    <input type="number" step="0.5" name="price_familia" placeholder="80.00" class="w-full bg-brand-surfaceLight border border-white/10 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:border-brand-gold">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-gray-300 font-semibold mb-1">URL da Foto</label>
+                <input type="url" name="image_url" placeholder="https://..." class="w-full bg-brand-surfaceLight border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-brand-gold">
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" name="is_pizza" id="is_pizza" checked class="w-4 h-4 rounded text-brand-red focus:ring-0">
+                <label for="is_pizza" class="text-gray-300 font-medium">É Pizza? (Habilita escolha de tamanho e borda)</label>
+            </div>
+
+            <div class="pt-3">
+                <button type="submit" class="w-full bg-brand-red hover:bg-brand-darkRed text-white py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-brand-red/30">
+                    Salvar Produto no Cardápio
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

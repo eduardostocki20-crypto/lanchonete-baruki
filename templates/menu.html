@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Cardápio Completo | {{ settings.pizzeria_name }}{% endblock %}
+
+{% block content %}
+<div class="py-12 bg-brand-darker">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="text-center max-w-3xl mx-auto mb-10">
+            <span class="text-brand-gold uppercase tracking-wider text-xs font-bold">Cardápio Artesanal</span>
+            <h1 class="font-serif text-3xl sm:text-5xl font-bold text-white mt-2">Escolha as suas pizzas favoritas</h1>
+            <p class="text-gray-400 mt-3 text-sm sm:text-base">Monte seu pedido online, escolha o tamanho da massa e bordas recheadas!</p>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="flex items-center justify-center gap-2 sm:gap-3 flex-wrap mb-12">
+            <a href="{{ url_for('menu', categoria='todos') }}" 
+               class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all border {% if selected_category == 'todos' or not selected_category %}bg-gradient-to-r from-brand-red to-brand-darkRed text-white border-transparent shadow-lg shadow-brand-red/30{% else %}bg-brand-surface border-white/10 text-gray-400 hover:text-white hover:border-brand-gold/40{% endif %}">
+                🍕 Todas
+            </a>
+            {% for cat in categories %}
+                <a href="{{ url_for('menu', categoria=cat['slug']) }}" 
+                   class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all border {% if selected_category == cat['slug'] %}bg-gradient-to-r from-brand-red to-brand-darkRed text-white border-transparent shadow-lg shadow-brand-red/30{% else %}bg-brand-surface border-white/10 text-gray-400 hover:text-white hover:border-brand-gold/40{% endif %}">
+                    {{ cat['name'] }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- Products Grid -->
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for product in products %}
+                <div id="item-{{ product['id'] }}" class="bg-brand-surface rounded-2xl border border-white/10 overflow-hidden flex flex-col justify-between group hover:border-brand-gold/40 transition-all hover:-translate-y-1">
+                    <div>
+                        <div class="relative h-48 overflow-hidden">
+                            <img src="{{ product['image_url'] }}" alt="{{ product['name'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-brand-surface via-transparent to-transparent opacity-80"></div>
+                            {% if product['badge'] %}
+                                <span class="absolute top-3 left-3 bg-brand-red/90 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                    {{ product['badge'] }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="p-5">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-serif text-lg font-bold text-white group-hover:text-brand-gold transition-colors">{{ product['name'] }}</h3>
+                            </div>
+                            <p class="text-gray-400 text-xs mt-2 leading-relaxed">{{ product['description'] }}</p>
+                        </div>
+                    </div>
+
+                    <div class="p-5 pt-0 border-t border-white/5 flex items-center justify-between gap-2 mt-4">
+                        <div>
+                            {% if product['is_pizza'] %}
+                                <span class="text-[10px] uppercase text-gray-500 block font-semibold">Grande (8 fatias)</span>
+                                <span class="text-brand-gold font-serif font-bold text-lg">{{ product['price_grande'] | currency }}</span>
+                            {% else %}
+                                <span class="text-[10px] uppercase text-gray-500 block font-semibold">Preço unitário</span>
+                                <span class="text-brand-gold font-serif font-bold text-lg">{{ product['price_media'] | currency }}</span>
+                            {% endif %}
+                        </div>
+
+                        <button type="button" 
+                                onclick="openModal({{ product['id'] }}, '{{ product['name'] }}', '{{ product['description'] }}', '{{ product['image_url'] }}', {{ product['price_media'] }}, {{ product['price_grande'] }}, {{ product['price_familia'] }}, {{ product['is_pizza'] }})"
+                                class="bg-brand-surfaceLight hover:bg-brand-red text-white px-4 py-2.5 rounded-xl border border-white/10 transition-all flex items-center gap-1.5 text-xs font-semibold hover:border-transparent">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Adicionar</span>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Product Customization Modal -->
+<div id="product-modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-brand-surface max-w-lg w-full rounded-3xl border border-white/10 overflow-hidden shadow-2xl relative">
+        <div class="relative h-48 sm:h-56">
+            <img id="m-image" src="" alt="" class="w-full h-full object-cover">
+            <button onclick="closeModal()" class="absolute top-4 right-4 bg-black/60 hover:bg-black/90 p-2 rounded-full text-white transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+            <div>
+                <h3 id="m-title" class="font-serif text-2xl font-bold text-white"></h3>
+                <p id="m-desc" class="text-gray-400 text-xs sm:text-sm mt-1"></p>
+            </div>
+
+            <!-- Size Selection (Pizzas only) -->
+            <div id="m-sizes-container">
+                <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">Selecione o Tamanho</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="m-size-choice" value="media" onchange="calculateModalPrice()" class="peer sr-only">
+                        <div class="p-2.5 rounded-xl border border-white/10 bg-brand-surfaceLight text-center peer-checked:border-brand-red peer-checked:bg-brand-red/20 transition-all">
+                            <span class="block text-xs font-bold text-white">Média</span>
+                            <span class="text-[10px] text-gray-400 block">4 fatias</span>
+                            <span id="m-price-media" class="text-xs text-brand-gold font-semibold mt-1 block">R$ 0,00</span>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer">
+                        <input type="radio" name="m-size-choice" value="grande" checked onchange="calculateModalPrice()" class="peer sr-only">
+                        <div class="p-2.5 rounded-xl border border-white/10 bg-brand-surfaceLight text-center peer-checked:border-brand-red peer-checked:bg-brand-red/20 transition-all">
+                            <span class="block text-xs font-bold text-white">Grande</span>
+                            <span class="text-[10px] text-gray-400 block">8 fatias</span>
+                            <span id="m-price-grande" class="text-xs text-brand-gold font-semibold mt-1 block">R$ 0,00</span>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer">
+                        <input type="radio" name="m-size-choice" value="familia" onchange="calculateModalPrice()" class="peer sr-only">
+                        <div class="p-2.5 rounded-xl border border-white/10 bg-brand-surfaceLight text-center peer-checked:border-brand-red peer-checked:bg-brand-red/20 transition-all">
+                            <span class="block text-xs font-bold text-white">Família</span>
+                            <span class="text-[10px] text-gray-400 block">12 fatias</span>
+                            <span id="m-price-familia" class="text-xs text-brand-gold font-semibold mt-1 block">R$ 0,00</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Crust Selection (Pizzas only) -->
+            <div id="m-crust-container">
+                <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">Borda Recheada Opcional</label>
+                <select id="m-crust-select" onchange="calculateModalPrice()" class="w-full bg-brand-surfaceLight border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-gold">
+                    <option value="Tradicional" data-price="0">Tradicional (Sem Recheio) + R$ 0,00</option>
+                    <option value="Catupiry Original" data-price="8">Catupiry Original + R$ 8,00</option>
+                    <option value="Cheddar Cremoso" data-price="8">Cheddar Cremoso + R$ 8,00</option>
+                    <option value="Chocolate" data-price="12">Chocolate Trufado + R$ 12,00</option>
+                </select>
+            </div>
+
+            <!-- Notes -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">Observações do Item</label>
+                <input type="text" id="m-notes-input" placeholder="Ex: Sem cebola, massa bem tostada..." class="w-full bg-brand-surfaceLight border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold">
+            </div>
+
+            <!-- Bottom Action -->
+            <div class="pt-4 border-t border-white/10 flex items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs text-gray-400 block">Total do item:</span>
+                    <span id="m-total-display" class="font-serif text-xl font-bold text-brand-gold">R$ 0,00</span>
+                </div>
+                <button type="button" id="btn-add-to-cart" onclick="confirmAddToCart()" class="flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-brand-red/30 transition-all hover:scale-[1.02]">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                    <span>Adicionar ao Pedido</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentProduct = null;
+
+    function openModal(id, name, desc, img, pMedia, pGrande, pFamilia, isPizza) {
+        currentProduct = { 
+            id: parseInt(id), 
+            name: name, 
+            desc: desc, 
+            img: img, 
+            pMedia: parseFloat(pMedia), 
+            pGrande: parseFloat(pGrande), 
+            pFamilia: parseFloat(pFamilia), 
+            isPizza: Boolean(isPizza) 
+        };
+
+        document.getElementById('m-title').textContent = name;
+        document.getElementById('m-desc').textContent = desc;
+        document.getElementById('m-image').src = img;
+        document.getElementById('m-notes-input').value = '';
+        document.getElementById('m-crust-select').selectedIndex = 0;
+
+        const sizesContainer = document.getElementById('m-sizes-container');
+        const crustContainer = document.getElementById('m-crust-container');
+
+        if (currentProduct.isPizza) {
+            sizesContainer.classList.remove('hidden');
+            crustContainer.classList.remove('hidden');
+            document.getElementById('m-price-media').textContent = `R$ ${currentProduct.pMedia.toFixed(2).replace('.', ',')}`;
+            document.getElementById('m-price-grande').textContent = `R$ ${currentProduct.pGrande.toFixed(2).replace('.', ',')}`;
+            document.getElementById('m-price-familia').textContent = `R$ ${currentProduct.pFamilia.toFixed(2).replace('.', ',')}`;
+            document.querySelector('input[name="m-size-choice"][value="grande"]').checked = true;
+        } else {
+            sizesContainer.classList.add('hidden');
+            crustContainer.classList.add('hidden');
+        }
+
+        calculateModalPrice();
+        document.getElementById('product-modal-backdrop').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function closeModal() {
+        document.getElementById('product-modal-backdrop').classList.add('hidden');
+        currentProduct = null;
+    }
+
+    function calculateModalPrice() {
+        if (!currentProduct) return;
+        let base = 0;
+
+        if (currentProduct.isPizza) {
+            const sizeRadio = document.querySelector('input[name="m-size-choice"]:checked');
+            const size = sizeRadio ? sizeRadio.value : 'grande';
+            if (size === 'media') base = currentProduct.pMedia;
+            else if (size === 'familia') base = currentProduct.pFamilia;
+            else base = currentProduct.pGrande;
+
+            const crustOpt = document.getElementById('m-crust-select').selectedOptions[0];
+            const crustPrice = parseFloat(crustOpt.getAttribute('data-price') || 0);
+            base += crustPrice;
+        } else {
+            base = currentProduct.pMedia;
+        }
+
+        document.getElementById('m-total-display').textContent = `R$ ${base.toFixed(2).replace('.', ',')}`;
+    }
+
+    // Hybrid Cart Add: Saves to LocalStorage + Syncs with Python Backend
+    async function confirmAddToCart() {
+        if (!currentProduct) return;
+
+        let size = 'único';
+        let crust = 'Tradicional';
+        let basePrice = currentProduct.pMedia;
+
+        if (currentProduct.isPizza) {
+            const sizeRadio = document.querySelector('input[name="m-size-choice"]:checked');
+            size = sizeRadio ? sizeRadio.value : 'grande';
+            if (size === 'media') basePrice = currentProduct.pMedia;
+            else if (size === 'familia') basePrice = currentProduct.pFamilia;
+            else basePrice = currentProduct.pGrande;
+
+            const crustOpt = document.getElementById('m-crust-select').selectedOptions[0];
+            const crustAdd = parseFloat(crustOpt.getAttribute('data-price') || 0);
+            basePrice += crustAdd;
+            crust = crustOpt.value;
+        }
+
+        const notes = document.getElementById('m-notes-input').value.trim();
+        const itemId = `${currentProduct.id}_${size}_${crust}_${notes}`.replace(/\s+/g, '_');
+
+        // 1. Instant LocalStorage Storage (Zero Lag, Zero Error!)
+        let localCart = JSON.parse(localStorage.getItem('baruki_cart') || '[]');
+        let existing = localCart.find(i => i.item_id === itemId);
+        if (existing) {
+            existing.quantity += 1;
+            existing.total_price = existing.quantity * existing.unit_price;
+        } else {
+            localCart.push({
+                item_id: itemId,
+                product_id: currentProduct.id,
+                name: currentProduct.name,
+                image_url: currentProduct.img,
+                size: size.toUpperCase(),
+                crust: crust,
+                notes: notes,
+                unit_price: basePrice,
+                quantity: 1,
+                total_price: basePrice,
+                is_pizza: currentProduct.isPizza
+            });
+        }
+        localStorage.setItem('baruki_cart', JSON.stringify(localCart));
+
+        // Update badge immediately
+        const totalItems = localCart.reduce((sum, item) => sum + item.quantity, 0);
+        const countBadge = document.getElementById('global-cart-count');
+        if (countBadge) countBadge.textContent = totalItems;
+
+        // 2. Background Sync with Server
+        try {
+            fetch('/api/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: currentProduct.id,
+                    size: size,
+                    crust: crust,
+                    notes: notes,
+                    quantity: 1
+                })
+            }).catch(e => console.log("Sync em background:", e));
+        } catch (e) {
+            // Ignore background network error
+        }
+
+        // Close modal and show success
+        const productName = currentProduct.name;
+        closeModal();
+
+        if (confirm(`🍕 ${productName} adicionado ao seu pedido!\n\nDeseja ir para o carrinho e finalizar agora?`)) {
+            window.location.href = "{{ url_for('view_cart') }}";
+        }
+    }
+</script>
+{% endblock %}
